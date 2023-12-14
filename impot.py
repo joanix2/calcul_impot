@@ -314,56 +314,56 @@ class CalculateurImpotUI:
         self.resultat.pack(padx=10, pady=10, expand=True, fill=tk.BOTH)
 
     def calculr_impot(self):
-        #try:
-        revenu = self.foyer.get_revenu()
-        abattement = self.foyer.get_abattement()
-        parts = self.foyer.get_parts()
+        try:
+            revenu = self.foyer.get_revenu()
+            abattement = self.foyer.get_abattement()
+            parts = self.foyer.get_parts()
 
-        final_text = ""
-        final_text += f"{revenu=}\n"
-        final_text += f"{abattement=}%\n"
-        final_text += f"{parts=}\n\n"
+            final_text = ""
+            final_text += f"{revenu=}\n"
+            final_text += f"{abattement=}%\n"
+            final_text += f"{parts=}\n\n"
 
-        if revenu < 0 or abattement < 0 or parts <= 0:
-            raise ValueError("Les valeurs doivent être positives et le nombre de parts doit être supérieur à zéro.")
+            if revenu < 0 or abattement < 0 or parts <= 0:
+                raise ValueError("Les valeurs doivent être positives et le nombre de parts doit être supérieur à zéro.")
 
-        # calcul de l'abattement 
-        revenu_apres_abattement, text = calcul_revenu_apres_abattement(revenu, abattement)
-        final_text += f"revenu apres abattement : {text}\n"
+            # calcul de l'abattement 
+            revenu_apres_abattement, text = calcul_revenu_apres_abattement(revenu, abattement)
+            final_text += f"revenu apres abattement : {text}\n"
 
-        # calcul des charges
-        revenu_deduction_des_charges, text = self.liste_deductions.get_deduction_charges(revenu_apres_abattement)
-        final_text += text
+            # calcul par part
+            assiette_fiscale = revenu_apres_abattement/parts # revenu moyen
+            around_assiette_fiscale = math.floor(assiette_fiscale)
+            final_text += f"assiette fiscale = {revenu_apres_abattement} / {parts} = {assiette_fiscale} = {around_assiette_fiscale}\n\n"
 
-        # calcul par part
-        assiette_fiscale = revenu_deduction_des_charges/parts # revenu moyen
-        around_assiette_fiscale = math.floor(assiette_fiscale)
-        final_text += f"assiette fiscale = {revenu_deduction_des_charges} / {parts} = {assiette_fiscale} = {around_assiette_fiscale}\n\n"
+            # calcul des tranches
+            impot, text = self.tranches.calcule_tranches(around_assiette_fiscale)
+            final_text += text
 
-        # calcul des tranches
-        impot, text = self.tranches.calcule_tranches(around_assiette_fiscale)
-        final_text += text
+            # calcul de la somme final
+            final = impot * parts
+            final_text += f"Somme des impots : {impot} x {parts} = {final}\n"
 
-        # calcul de la somme final
-        final = impot * parts
-        final_text += f"Somme des impots : {impot} x {parts} = {final}\n"
+            # calcul des charges
+            impot_deduction_des_charges, text = self.liste_deductions.get_deduction_charges(final)
+            final_text += text
 
-        # calcul du taux d'imposition
-        taux_imposition = final/revenu_deduction_des_charges
-        around_taux_imposition = math.floor(taux_imposition*10000)/100
-        final_text += f"Taux d'imposition : {final} / {revenu_deduction_des_charges} = {taux_imposition} = {around_taux_imposition} %\n"
+            # calcul du taux d'imposition
+            taux_imposition = impot_deduction_des_charges/revenu_apres_abattement
+            around_taux_imposition = math.floor(taux_imposition*10000)/100
+            final_text += f"Taux d'imposition : {impot_deduction_des_charges} / {revenu_apres_abattement} = {taux_imposition} = {around_taux_imposition} %\n"
 
-        # calcul du taux de prélèvement
-        taux_prélèvement_source = final/(revenu_apres_abattement/parts)
-        around_taux_prélèvement_source = math.floor(taux_prélèvement_source*10000)/100
-        final_text += f"Taux de prélèvement à la source : {final} / ({revenu_apres_abattement} / {parts}) = {taux_prélèvement_source} = {around_taux_prélèvement_source} %\n"
+            # calcul du taux de prélèvement
+            taux_prélèvement_source = final/revenu_apres_abattement
+            around_taux_prélèvement_source = math.floor(taux_prélèvement_source*10000)/100
+            final_text += f"Taux de prélèvement à la source : {final} / {revenu_apres_abattement} = {taux_prélèvement_source} = {around_taux_prélèvement_source} %\n"
 
-        self.resultat.delete("1.0", tk.END)
-        # Insère le nouveau texte
-        self.resultat.insert(tk.END, final_text)
+            self.resultat.delete("1.0", tk.END)
+            # Insère le nouveau texte
+            self.resultat.insert(tk.END, final_text)
 
-"""         except ValueError as e:
-            messagebox.showerror("Erreur de saisie", str(e)) """
+        except ValueError as e:
+            messagebox.showerror("Erreur de saisie", str(e))
 
 def main():
     fenetre = tk.Tk()

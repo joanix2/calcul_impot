@@ -244,9 +244,9 @@ class ListeDeductions(tk.Frame):
             arround_m = math.floor(m)
 
             text += f"Déduction {i} : {montant} x {abat} = {m} = {arround_m}\n"
-            if arround_m > limite and limite != 0:
-                text += f"Déduction {i} : min({arround_m}, {limite}) = {limite}\n"
-            deduction = arround_m if limite == 0 else min(arround_m, limite)
+            if montant > limite and limite != 0:
+                text += f"Déduction {i} : min({montant}, {limite})  * {abat}= {limite}\n"
+            deduction = math.floor(min(montant, limite) * abat)
             liste_somme_charges.append(deduction)
 
         if liste_somme_charges != []:
